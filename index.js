@@ -4,16 +4,34 @@ const process = require('process');
 const {authenticate} = require('@google-cloud/local-auth');
 const {google} = require('googleapis');
 const express = require('express')
+const cors = require('cors')
 
 const app = express()
 const port = process.env.PORT || 5000
 
+app.use(cors());
+
 app.get('/', (req, res) => {
-  authorize().then(res.send(listTaskLists)).catch(console.error);
+  res.send('hello');
 })
 
-app.get('/123', (req, res) => {
-  res.send('Hello World!123')
+app.get('/taskLists', async (req, res) => {
+  authorize()
+  .then(async (auth)=>{
+    let taskList = await listTaskLists(auth);
+    res.json(taskList);
+  })
+  .catch(console.error);
+})
+
+app.get('/rate', (req, res) => {
+  authorize()
+  .then(async (auth)=>{
+    let rate = await RateTaskList(auth);
+    console.log("rate" +rate);
+    res.send(rate);
+  })
+  .catch(console.error);
 })
 
 app.listen(port, () => {
@@ -92,16 +110,48 @@ async function listTaskLists(auth) {
     maxResults: 10,
   });
   const taskLists = res.data.items;
+  return taskLists;
+}
 
-  console.log('Task lists:');
+async function RateTaskList(auth) {
+  const service = google.tasks({version: 'v1', auth});
+  const res = await service.tasklists.list({
+    maxResults: 10,
+  });
+  const taskLists = res.data.items;
+
+  let rate = 0;
+  let sum1 = 0, sum2 = 0;
   taskLists.forEach(async (taskList) => {
-    console.log(`${taskList.title} (${taskList.id})`);
+
     let ret = await service.tasks.list({
       tasklist: taskList.id,
       showHidden: true
     })
 
-    const tasks = ret.data.items;
-    return tasks;
+    tasks = ret.data.items;
+    //console.log(tasks);
+    tasks.forEach((task) => {
+      sum1++;
+      console.log(task);
+    })
+
+    ret = await service.tasks.list({
+      tasklist: taskList.id,
+    })
+
+    tasks = ret.data.items;
+    //console.log(tasks);
+    tasks.forEach((task) => {
+      sum2++;
+      console.log(task);
+    })
+    
+    let str = String(sum2);
+    let float = parseFloat(str);
+    let rate = sum1/float
+
+    console.log(sum1, sum2, rate)
   });
+  return rate;
 }
