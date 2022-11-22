@@ -142,5 +142,5 @@ async function getRate(taskList, service) {
   console.log("complete" + complete)
   console.log("total" + total);
 
-  return (complete / parseFloat(String(total))) * 100;
+  return (complete / total) * 100;
 }
