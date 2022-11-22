@@ -133,16 +133,14 @@ async function getRate(taskList, service) {
     tasklist: taskList.id,
   })
 
-  let hiddenTrueItem = hiddenTrue.data.items;
-  let hiddenFalseItem = hiddenFalse.data.items;
+  let item = hiddenTrue.data.items;
+  let uncompleteItem = hiddenFalse.data.items;
 
-  console.log(hiddenFalseItem.length)
-  console.log(hiddenTrueItem.length);
+  let total = item.length;
+  let complete = total - uncompleteItem.length;
 
-  let complete = hiddenFalseItem.length - hiddenTrueItem.length;
-  let total = hiddenTrueItem.length;
+  console.log("complete" + complete)
+  console.log("total" + total);
 
-  console.log("complete" + complete, total);
-
-  return (complete / parseFloat(String(total))) * -100;
+  return (complete / parseFloat(String(total))) * 100;
 }
