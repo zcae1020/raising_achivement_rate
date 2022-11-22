@@ -29,7 +29,7 @@ app.get('/rate', (req, res) => {
   .then(async (auth)=>{
     let rate = await RateTaskList(auth);
     console.log("rate" +rate);
-    res.send(rate);
+    res.json({rate: rate});
   })
   .catch(console.error);
 })
@@ -120,38 +120,29 @@ async function RateTaskList(auth) {
   });
   const taskLists = res.data.items;
 
-  let rate = 0;
-  let sum1 = 0, sum2 = 0;
-  taskLists.forEach(async (taskList) => {
+  return getRate(taskLists[0], service);
+}
 
-    let ret = await service.tasks.list({
-      tasklist: taskList.id,
-      showHidden: true
-    })
+async function getRate(taskList, service) {
+  let hiddenTrue = await service.tasks.list({
+    tasklist: taskList.id,
+    showHidden: true
+  })
 
-    tasks = ret.data.items;
-    //console.log(tasks);
-    tasks.forEach((task) => {
-      sum1++;
-      console.log(task);
-    })
+  let hiddenFalse = await service.tasks.list({
+    tasklist: taskList.id,
+  })
 
-    ret = await service.tasks.list({
-      tasklist: taskList.id,
-    })
+  let hiddenTrueItem = hiddenTrue.data.items;
+  let hiddenFalseItem = hiddenFalse.data.items;
 
-    tasks = ret.data.items;
-    //console.log(tasks);
-    tasks.forEach((task) => {
-      sum2++;
-      console.log(task);
-    })
-    
-    let str = String(sum2);
-    let float = parseFloat(str);
-    let rate = sum1/float
+  console.log(hiddenFalseItem.length)
+  console.log(hiddenTrueItem.length);
 
-    console.log(sum1, sum2, rate)
-  });
-  return rate;
+  let complete = hiddenFalseItem.length - hiddenTrueItem.length;
+  let total = hiddenTrueItem.length;
+
+  console.log("complete" + complete, total);
+
+  return (complete / parseFloat(String(total))) * -100;
 }
