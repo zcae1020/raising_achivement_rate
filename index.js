@@ -140,18 +140,20 @@ async function RateTaskList(auth, id) {
     tasklist: id,
   });
   const taskList = res.data;
-  console.log(taskList);
 
   return getRate(taskList, service);
 }
 
 async function getRate(taskList, service) {
+  console.log(taskList);
   let hiddenTrue = await service.tasks.list({
+    maxResults: 100,
     tasklist: taskList.id,
     showHidden: true
   })
 
   let hiddenFalse = await service.tasks.list({
+    maxResults: 100,
     tasklist: taskList.id,
   })
 
@@ -164,6 +166,6 @@ async function getRate(taskList, service) {
   console.log("complete" + complete)
   console.log("total" + total);
 
-  return (complete / total) * 100;
+  return parseInt((complete / total) * 100);
 }
 
