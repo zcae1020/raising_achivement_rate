@@ -27,7 +27,18 @@ app.get('/taskLists', async (req, res) => {
 app.get('/rate', (req, res) => {
   authorize()
   .then(async (auth)=>{
-    let rate = await RateTaskList(auth);
+    let rate = await DefaultRateTaskList(auth);
+    console.log("rate" +rate);
+    res.json({rate: rate});
+  })
+  .catch(console.error);
+})
+
+app.get('/rate/:id', (req, res) => {
+  authorize()
+  .then(async (auth)=>{
+    console.log(req.params["id"]);
+    let rate = await RateTaskList(auth, req.params["id"]);
     console.log("rate" +rate);
     res.json({rate: rate});
   })
@@ -113,7 +124,7 @@ async function listTaskLists(auth) {
   return taskLists;
 }
 
-async function RateTaskList(auth) {
+async function DefaultRateTaskList(auth) {
   const service = google.tasks({version: 'v1', auth});
   const res = await service.tasklists.list({
     maxResults: 10,
@@ -121,6 +132,17 @@ async function RateTaskList(auth) {
   const taskLists = res.data.items;
 
   return getRate(taskLists[0], service);
+}
+
+async function RateTaskList(auth, id) {
+  const service = google.tasks({version: 'v1', auth});
+  const res = await service.tasklists.get({
+    tasklist: id,
+  });
+  const taskList = res.data;
+  console.log(taskList);
+
+  return getRate(taskList, service);
 }
 
 async function getRate(taskList, service) {
@@ -144,3 +166,4 @@ async function getRate(taskList, service) {
 
   return (complete / total) * 100;
 }
+
